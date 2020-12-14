@@ -16,24 +16,23 @@ import { connect } from 'react-redux';
  */
 import Overlay from './overlay';
 import SearchResults from './search-results';
-import {
-	getFilterQuery,
-	getResultFormatQuery,
-	hasFilter,
-	setFilterQuery,
-	restorePreviousHref,
-} from '../lib/query-string';
+import { getResultFormatQuery, restorePreviousHref } from '../lib/query-string';
 import {
 	initializeQueryValues,
 	makeSearchRequest,
+	setFilter,
 	setSearchQuery,
 	setSort,
 } from '../store/actions';
 import {
+	getFilters,
+	getFiltersOutsideOverlay,
 	getResponse,
 	getSearchQuery,
 	getSort,
+	getWidgetOutsideOverlay,
 	hasError,
+	hasFilters,
 	hasNextPage,
 	isLoading,
 } from '../store/selectors';
@@ -70,7 +69,11 @@ class SearchApp extends Component {
 	}
 
 	componentDidUpdate( prevProps ) {
-		if ( prevProps.searchQuery !== this.props.searchQuery || prevProps.sort !== this.props.sort ) {
+		if (
+			prevProps.searchQuery !== this.props.searchQuery ||
+			prevProps.sort !== this.props.sort ||
+			prevProps.filters !== this.props.filters
+		) {
 			this.onChangeQueryString();
 		}
 	}
@@ -133,7 +136,7 @@ class SearchApp extends Component {
 	}
 
 	hasActiveQuery() {
-		return this.props.searchQuery !== '' || hasFilter();
+		return this.props.searchQuery !== '' || this.props.hasFilters;
 	}
 
 	handleBrowserHistoryNavigation = () => {
@@ -165,9 +168,15 @@ class SearchApp extends Component {
 		event.preventDefault();
 		if ( event.currentTarget.dataset.filterType ) {
 			if ( event.currentTarget.dataset.filterType === 'taxonomy' ) {
-				setFilterQuery( event.currentTarget.dataset.taxonomy, event.currentTarget.dataset.val );
+				this.props.setFilter(
+					event.currentTarget.dataset.taxonomy,
+					event.currentTarget.dataset.val
+				);
 			} else {
-				setFilterQuery( event.currentTarget.dataset.filterType, event.currentTarget.dataset.val );
+				this.props.setFilter(
+					event.currentTarget.dataset.filterType,
+					event.currentTarget.dataset.val
+				);
 			}
 		}
 		this.showResults();
@@ -218,12 +227,12 @@ class SearchApp extends Component {
 		this.props.hasNextPage && this.getResults( { pageHandle: this.props.response.page_handle } );
 	};
 
-	getResults = ( { filter = getFilterQuery(), pageHandle } = {} ) => {
+	getResults = ( { pageHandle } = {} ) => {
 		this.props.makeSearchRequest( {
 			// Skip aggregations when requesting for paged results
 			aggregations: pageHandle ? {} : this.props.aggregations,
 			excludedPostTypes: this.props.options.excludedPostTypes,
-			filter,
+			filter: this.props.filters,
 			pageHandle,
 			query: this.props.searchQuery,
 			siteId: this.props.options.siteId,
@@ -250,6 +259,8 @@ class SearchApp extends Component {
 					closeOverlay={ this.hideResults }
 					enableLoadOnScroll={ this.state.overlayOptions.enableInfScroll }
 					enableSort={ this.state.overlayOptions.enableSort }
+					filters={ this.props.filters }
+					filtersOutsideOverlay={ this.props.filtersOutsideOverlay }
 					hasError={ this.props.hasError }
 					hasNextPage={ this.props.hasNextPage }
 					highlightColor={ this.state.overlayOptions.highlightColor }
@@ -268,7 +279,7 @@ class SearchApp extends Component {
 					showPoweredBy={ this.state.overlayOptions.showPoweredBy }
 					sort={ this.props.sort }
 					widgets={ this.props.options.widgets }
-					widgetsOutsideOverlay={ this.props.options.widgetsOutsideOverlay }
+					widgetsOutsideOverlay={ this.props.widgetsOutsideOverlay }
 				/>
 			</Overlay>,
 			document.body
@@ -278,12 +289,16 @@ class SearchApp extends Component {
 
 export default connect(
 	state => ( {
+		filters: getFilters( state ),
+		filtersOutsideOverlay: getFiltersOutsideOverlay( state ),
 		hasError: hasError( state ),
+		hasFilters: hasFilters( state ),
 		hasNextPage: hasNextPage( state ),
 		isLoading: isLoading( state ),
 		response: getResponse( state ),
 		searchQuery: getSearchQuery( state ),
 		sort: getSort( state ),
+		widgetsOutsideOverlay: getWidgetOutsideOverlay( state ),
 	} ),
-	{ initializeQueryValues, makeSearchRequest, setSearchQuery, setSort }
+	{ initializeQueryValues, makeSearchRequest, setFilter, setSearchQuery, setSort }
 )( SearchApp );
