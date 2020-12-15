@@ -26,7 +26,6 @@ import {
 } from '../store/actions';
 import {
 	getFilters,
-	getFiltersOutsideOverlay,
 	getResponse,
 	getSearchQuery,
 	getSort,
@@ -260,7 +259,6 @@ class SearchApp extends Component {
 					enableLoadOnScroll={ this.state.overlayOptions.enableInfScroll }
 					enableSort={ this.state.overlayOptions.enableSort }
 					filters={ this.props.filters }
-					filtersOutsideOverlay={ this.props.filtersOutsideOverlay }
 					hasError={ this.props.hasError }
 					hasNextPage={ this.props.hasNextPage }
 					highlightColor={ this.state.overlayOptions.highlightColor }
@@ -279,7 +277,7 @@ class SearchApp extends Component {
 					showPoweredBy={ this.state.overlayOptions.showPoweredBy }
 					sort={ this.props.sort }
 					widgets={ this.props.options.widgets }
-					widgetsOutsideOverlay={ this.props.widgetsOutsideOverlay }
+					widgetsOutsideOverlay={ this.props.options.widgetsOutsideOverlay }
 				/>
 			</Overlay>,
 			document.body
@@ -290,7 +288,6 @@ class SearchApp extends Component {
 export default connect(
 	state => ( {
 		filters: getFilters( state ),
-		filtersOutsideOverlay: getFiltersOutsideOverlay( state ),
 		hasError: hasError( state ),
 		hasFilters: hasFilters( state ),
 		hasNextPage: hasNextPage( state ),
