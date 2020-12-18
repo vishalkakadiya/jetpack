@@ -51,8 +51,7 @@ class Test_WPCOM_REST_API_V2_Attachment_VideoPress_Field extends WP_Test_Jetpack
 
 		$attachment_id = $this->factory->attachment->create_upload_object( dirname( dirname( __DIR__ ) ) . '/jetpack-icon.jpg', 0 );
 		$object        = array(
-			'id'     => $attachment_id,
-			'rating' => 'G',
+			'id' => $attachment_id,
 		);
 		$request       = new WP_REST_Request( 'GET', sprintf( '/wp/v2/media/%d', $attachment_id ) );
 		$data          = $mock->get( $object, $request );
